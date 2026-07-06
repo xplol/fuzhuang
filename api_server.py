@@ -7,10 +7,15 @@ import traceback
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from datetime import datetime
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from socketserver import ThreadingMixIn
 from urllib.parse import parse_qs, urlparse
 from zipfile import ZipFile
+
+
+class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -38,7 +43,7 @@ def dict_factory(cursor, row):
 
 def connect():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = dict_factory
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
