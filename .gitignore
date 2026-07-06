@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Runtime data
+data/
+*.sqlite
+*.sqlite3
+*.db
+
+# Local deployment/customer handoff notes with server details
+DEPLOYMENT_STATUS.md
+DELIVERY_TEST_REPORT.md
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
