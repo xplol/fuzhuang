@@ -28,7 +28,8 @@
     query: {},
     pages: {},
     notifications: null,
-    importPreview: null
+    importPreview: null,
+    expanded: {}
   };
   let pendingImportBuffer = null;
 
@@ -791,6 +792,7 @@
       escapeHtml(user.last_login || "-"),
       `<div class="row-actions"><button class="icon-button" title="编辑" data-action="edit-user" data-id="${user.id}">${icon("edit")}</button>${user.username === "admin" ? "" : `<button class="icon-button danger-icon" title="删除" data-action="delete-user" data-id="${user.id}">${icon("trash")}</button>`}</div>`
     ]);
+    const maintenanceOpen = !!state.expanded.databaseMaintenance;
     return pageShell(`
       <div class="home-grid">
         <section class="panel">
@@ -803,20 +805,28 @@
             ${roles.map(roleCard).join("")}
           </div>
         </section>
-        <section class="panel danger-panel">
-          <div class="panel-header"><h3 class="panel-title">数据库维护</h3></div>
-          <div class="danger-note">清除数据库会删除物资、入库、出库、销售、申请记录，用户和权限配置会保留。</div>
-          <form class="form-grid" data-form="secondary-password">
-            ${field("当前二次密码", input("current_password", "请输入当前二次密码", "", "password"), true)}
-            ${field("新二次密码", input("new_password", "至少 4 位", "", "password"), true)}
-            ${field("确认新二次密码", input("confirm_password", "请再次输入新密码", "", "password"), true)}
-            <button class="btn primary full" type="submit">修改二次密码</button>
-          </form>
-          <form class="form-grid danger-form" data-form="clear-database">
-            ${field("二次密码", input("secondary_password", "请输入二次密码", "", "password"), true)}
-            ${field("确认文字", input("confirm_text", "请输入：确认清空"), true)}
-            <button class="btn danger full" type="submit">一键清除数据库</button>
-          </form>
+        <section class="panel danger-panel collapsible-card ${maintenanceOpen ? "open" : ""}">
+          <div class="panel-header collapsible-head">
+            <div>
+              <h3 class="panel-title">数据库维护</h3>
+              <p class="muted compact-copy">修改二次密码和清除业务数据</p>
+            </div>
+            <button class="btn outline compact" type="button" data-action="toggle-collapse" data-key="databaseMaintenance">${maintenanceOpen ? "收起" : "展开"}</button>
+          </div>
+          ${maintenanceOpen ? `
+            <div class="danger-note">清除数据库会删除物资、入库、出库、销售、申请记录，用户和权限配置会保留。</div>
+            <form class="form-grid" data-form="secondary-password">
+              ${field("当前二次密码", input("current_password", "请输入当前二次密码", "", "password"), true)}
+              ${field("新二次密码", input("new_password", "至少 4 位", "", "password"), true)}
+              ${field("确认新二次密码", input("confirm_password", "请再次输入新密码", "", "password"), true)}
+              <button class="btn primary full" type="submit">修改二次密码</button>
+            </form>
+            <form class="form-grid danger-form" data-form="clear-database">
+              ${field("二次密码", input("secondary_password", "请输入二次密码", "", "password"), true)}
+              ${field("确认文字", input("confirm_text", "请输入：确认清空"), true)}
+              <button class="btn danger full" type="submit">一键清除数据库</button>
+            </form>
+          ` : ""}
         </section>
       </div>
     `);
@@ -824,24 +834,30 @@
 
   function roleCard(role) {
     const selected = new Set(role.items || []);
+    const key = `role:${role.role}`;
+    const open = !!state.expanded[key];
     return `
-      <form class="role-card" data-form="role-permissions">
+      <form class="role-card collapsible-card ${open ? "open" : ""}" data-form="role-permissions">
         <input type="hidden" name="role" value="${escapeHtml(role.role)}" />
         <div class="role-card-head">
           <div>
             <h3>${escapeHtml(role.role)}</h3>
+            <div class="permission-count">已选择 ${selected.size} 项权限</div>
             <p class="permission-summary">${escapeHtml(role.permissions || "-")}</p>
           </div>
-          <button class="btn outline compact" type="submit">保存</button>
+          <button class="btn outline compact" type="button" data-action="toggle-collapse" data-key="${escapeHtml(key)}">${open ? "收起" : "展开"}</button>
         </div>
-        <div class="permission-grid">
-          ${permissionCatalog.map((item) => `
-            <label class="check-item">
-              <input type="checkbox" name="permission" value="${escapeHtml(item)}" ${selected.has(item) ? "checked" : ""} />
-              <span>${escapeHtml(item)}</span>
-            </label>
-          `).join("")}
-        </div>
+        ${open ? `
+          <div class="permission-grid">
+            ${permissionCatalog.map((item) => `
+              <label class="check-item">
+                <input type="checkbox" name="permission" value="${escapeHtml(item)}" ${selected.has(item) ? "checked" : ""} />
+                <span>${escapeHtml(item)}</span>
+              </label>
+            `).join("")}
+          </div>
+          <div class="role-actions"><button class="btn primary compact" type="submit">保存权限</button></div>
+        ` : ""}
       </form>
     `;
   }
@@ -1416,6 +1432,14 @@
       }
       if (name === "reload") await loadData();
       if (name === "send-code") toast("验证码已发送：8888");
+      if (name === "toggle-collapse") {
+        event.preventDefault();
+        const key = action.getAttribute("data-key");
+        if (!key) return;
+        state.expanded[key] = !state.expanded[key];
+        render();
+        return;
+      }
       if (name === "page") {
         event.preventDefault();
         event.stopPropagation();

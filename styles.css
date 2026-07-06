@@ -801,11 +801,19 @@ tfoot td {
   background: #fff;
 }
 
+.collapsible-card:not(.open) {
+  padding-bottom: 14px;
+}
+
 .role-card-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: 0;
+}
+
+.role-card.open .role-card-head {
   margin-bottom: 14px;
 }
 
@@ -817,6 +825,18 @@ tfoot td {
 .role-card p {
   margin: 0 0 12px;
   color: var(--muted);
+}
+
+.collapsible-card:not(.open) .role-card p {
+  margin-bottom: 0;
+}
+
+.permission-count,
+.compact-copy {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .role-card-head > div {
@@ -832,9 +852,14 @@ tfoot td {
 }
 
 .role-card .permission-summary {
+  max-height: 48px;
+  overflow: hidden;
+  padding-right: 6px;
+}
+
+.role-card.open .permission-summary {
   max-height: 84px;
   overflow-y: auto;
-  padding-right: 6px;
 }
 
 .table-permission-summary {
@@ -853,6 +878,12 @@ tfoot td {
   display: grid;
   grid-template-columns: repeat(2, minmax(180px, 1fr));
   gap: 8px;
+}
+
+.role-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
 }
 
 .check-item {
