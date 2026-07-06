@@ -422,8 +422,21 @@
     });
   }
 
+  function naturalSortValues(values) {
+    const numeric = (value) => /^-?\d+(\.\d+)?$/.test(String(value).trim());
+    return values.sort((a, b) => {
+      const left = String(a).trim();
+      const right = String(b).trim();
+      const leftNumeric = numeric(left);
+      const rightNumeric = numeric(right);
+      if (leftNumeric && rightNumeric) return Number(left) - Number(right);
+      if (leftNumeric !== rightNumeric) return leftNumeric ? -1 : 1;
+      return left.localeCompare(right, "zh-Hans-CN", { numeric: true, sensitivity: "base" });
+    });
+  }
+
   function materialNameOptions(selected = "") {
-    const names = Array.from(new Set((state.data.materials || []).map((m) => m.name))).sort();
+    const names = naturalSortValues(Array.from(new Set((state.data.materials || []).map((m) => m.name))));
     return [{ value: "", text: "全部品类" }].concat(names.map((name) => ({ value: name, text: name }))).map((option) => {
       const value = typeof option === "object" ? option.value : option;
       const text = typeof option === "object" ? option.text : option;
@@ -454,12 +467,12 @@
   }
 
   function materialValueOptions(field, selected = "", rows = state.data.materials || []) {
-    const values = Array.from(new Set(rows.map((m) => m[field]).filter(Boolean))).sort();
+    const values = naturalSortValues(Array.from(new Set(rows.map((m) => m[field]).filter(Boolean))));
     return `<option value="">请选择</option>${values.map((value) => `<option value="${escapeHtml(value)}" ${String(value) === String(selected) ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}`;
   }
 
   function materialFilterOptions(field, allText, selected = "", rows = state.data.materials || []) {
-    const values = Array.from(new Set(rows.map((m) => m[field]).filter(Boolean))).sort();
+    const values = naturalSortValues(Array.from(new Set(rows.map((m) => m[field]).filter(Boolean))));
     return `<option value="">${escapeHtml(allText)}</option>${values.map((value) => `<option value="${escapeHtml(value)}" ${String(value) === String(selected) ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}`;
   }
 
@@ -495,7 +508,7 @@
   }
 
   function salespersonOptions(selected = "") {
-    const names = Array.from(new Set(state.data.salespeople || [])).filter(Boolean).sort();
+    const names = naturalSortValues(Array.from(new Set(state.data.salespeople || [])).filter(Boolean));
     return `<option value="">全部销售员</option>${names.map((name) => `<option value="${escapeHtml(name)}" ${String(name) === String(selected) ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}`;
   }
 
@@ -1141,7 +1154,7 @@
   }
 
   function updateSelectOptions(selectEl, field, rows, selected) {
-    const values = Array.from(new Set(rows.map((m) => m[field]).filter(Boolean))).sort();
+    const values = naturalSortValues(Array.from(new Set(rows.map((m) => m[field]).filter(Boolean))));
     const keep = values.includes(selected) ? selected : "";
     selectEl.innerHTML = `<option value="">请选择</option>${values.map((value) => `<option value="${escapeHtml(value)}" ${value === keep ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}`;
     selectEl.value = keep;
